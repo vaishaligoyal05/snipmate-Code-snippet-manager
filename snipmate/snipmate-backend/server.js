@@ -3,24 +3,34 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
-dotenv.config();          // Load environment variables
+// Load environment variables
+dotenv.config();
 
-const app = express();    // ✅ Define app before using it
+// Initialize Express app
+const app = express();
 
-// Connect to DB
+// Connect to MongoDB
 connectDB();
 
 // Middleware
 app.use(cors());
-app.use(express.json()); // Parse JSON requests
+app.use(express.json()); // Parses incoming JSON requests
 
-// Routes
+// Route Imports
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const snippetRoutes = require('./routes/snippetRoutes'); 
 
+// Route Handlers
 app.use('/api/auth', authRoutes);
-app.use('/api/user', userRoutes);  // ✅ Now safe to use
+app.use('/api/user', userRoutes);
+app.use('/api/snippets', snippetRoutes); //  Register snippet routes
 
-// Start server
+// Default route (optional)
+app.get('/', (req, res) => {
+  res.send('SnipMate API is running...');
+});
+
+// Start the server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(` Server running on port ${PORT}`));
