@@ -21,11 +21,12 @@ const createSnippet = async (req, res) => {
 
     res.status(201).json(newSnippet);
   } catch (error) {
+    console.error("Create snippet error:", error.message);
     res.status(500).json({ message: 'Failed to create snippet', error: error.message });
   }
 };
 
-// @desc Get all snippets for logged-in user
+// @desc Get all snippets for the logged-in user
 // @route GET /api/snippets
 // @access Private
 const getUserSnippets = async (req, res) => {
@@ -33,6 +34,7 @@ const getUserSnippets = async (req, res) => {
     const snippets = await Snippet.find({ user: req.user._id }).sort({ createdAt: -1 });
     res.status(200).json(snippets);
   } catch (error) {
+    console.error("Get snippets error:", error.message);
     res.status(500).json({ message: 'Failed to fetch snippets', error: error.message });
   }
 };
@@ -44,12 +46,17 @@ const getSnippetById = async (req, res) => {
   try {
     const snippet = await Snippet.findById(req.params.id);
 
-    if (!snippet || snippet.user.toString() !== req.user._id.toString()) {
+    if (!snippet) {
       return res.status(404).json({ message: 'Snippet not found' });
+    }
+
+    if (snippet.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Unauthorized access' });
     }
 
     res.status(200).json(snippet);
   } catch (error) {
+    console.error("Get snippet by ID error:", error.message);
     res.status(500).json({ message: 'Failed to fetch snippet', error: error.message });
   }
 };
@@ -61,8 +68,12 @@ const updateSnippet = async (req, res) => {
   try {
     const snippet = await Snippet.findById(req.params.id);
 
-    if (!snippet || snippet.user.toString() !== req.user._id.toString()) {
-      return res.status(404).json({ message: 'Snippet not found or unauthorized' });
+    if (!snippet) {
+      return res.status(404).json({ message: 'Snippet not found' });
+    }
+
+    if (snippet.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Unauthorized access' });
     }
 
     const { title, code, language, description } = req.body;
@@ -75,6 +86,7 @@ const updateSnippet = async (req, res) => {
     const updatedSnippet = await snippet.save();
     res.status(200).json(updatedSnippet);
   } catch (error) {
+    console.error("Update snippet error:", error.message);
     res.status(500).json({ message: 'Failed to update snippet', error: error.message });
   }
 };
@@ -86,13 +98,18 @@ const deleteSnippet = async (req, res) => {
   try {
     const snippet = await Snippet.findById(req.params.id);
 
-    if (!snippet || snippet.user.toString() !== req.user._id.toString()) {
-      return res.status(404).json({ message: 'Snippet not found or unauthorized' });
+    if (!snippet) {
+      return res.status(404).json({ message: 'Snippet not found' });
+    }
+
+    if (snippet.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Unauthorized access' });
     }
 
     await snippet.deleteOne();
-    res.status(200).json({ message: 'Snippet deleted' });
+    res.status(200).json({ message: 'Snippet deleted successfully' });
   } catch (error) {
+    console.error("Delete snippet error:", error.message);
     res.status(500).json({ message: 'Failed to delete snippet', error: error.message });
   }
 };
